@@ -3,8 +3,8 @@ import argparse
 import pandas as pd
 import numpy as np
 import time
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+# import matplotlib.pyplot as plt
+# import matplotlib.gridspec as gridspec
 import datetime
 
 from pymeasure.instruments.srs import SR830
@@ -94,7 +94,6 @@ def measure_pressure(SRlockin, goal_pressure, inlet_pressure, n):
     # sine_voltage = np.mean(np.array(sine_voltage))
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', "--file", type=str,
@@ -144,7 +143,7 @@ if __name__ == '__main__':
                     time.sleep(0.2)
                     data = dict(time=datetime.datetime.now(), pressure=0)
 
-                    LSdata = measure_tempres(LS)
+                    LSdata = measure_tempres(LS, SAMPLE_DIMENSIONS)
                     # SRdata = measure_pressure(SR830('GPIB::9'), voltage, args.inlet, 50)
 
                     data.update(LSdata)
