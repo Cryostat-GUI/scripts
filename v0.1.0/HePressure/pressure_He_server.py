@@ -6,7 +6,7 @@ import zmq
 import logging
 # from threading import Thread
 
-logger = logging.getLogger('HeServer')
+logger = logging.getLogger('zmqConn')
 
 
 class genericAnswer(Exception):
@@ -25,10 +25,10 @@ class zmqDevice(object):
         super(zmqDevice, self).__init__(*args, **kwargs)
         try:
 
-            self.tcp_rep = self.zmq_context.socket(zmq.REP)
-            self.tcp_req = self.zmq_context.socket(zmq.REQ)
+            self.tcp_rep = zmqcontext.socket(zmq.REP)
+            self.tcp_req = zmqcontext.socket(zmq.REQ)
         except AttributeError:
-            self.zmqcontext = zmq.Context()
+            self.zmq_context = zmq.Context()
             self.tcp_rep = self.zmq_context.socket(zmq.REP)
             self.tcp_req = self.zmq_context.socket(zmq.REQ)
 
@@ -113,6 +113,7 @@ class Timerthread(Thread):
     def __init__(self, event=None, interval=0.5, *args, **kwargs):
         super(Timerthread, self).__init__(*args, **kwargs)
         self.interval = interval
+        self.counter = 0
         if event is None:
             self.stopped = Event()
         else:
@@ -120,30 +121,38 @@ class Timerthread(Thread):
 
     def run(self):
         while not self.stopped.wait(self.interval):
-            print("my thread is working hard!")
+            print(f"my thread is working hard! {self.counter}")
             self.work()
+            self.counter += 1
 
     def work(self):
-        """to be implemented by child class!"""
+        """to be implemented by child class!""" 
         raise NotImplementedError
 
 
-class PressureHandler(zmqServer, Timerthread):
+class TestHandler(zmqServer, Timerthread):
     """docstring for PressureHandler"""
 
-    def __init__(self, event, *args, **kwargs):
-        super(PressureHandler, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(TestHandler, self).__init__(*args, **kwargs)
         self._pressure = 5
 
     def handlefun(self, message):
-        if message == 'p?':
+        if message == b'p?':
             self.tcp_rep.send_string(f'{self._pressure}')
         else:
-            self.tcp_rep.send_string(f'received: {message}')
+            self.tcp_rep.send_string(f'received: {message}, can reply to "p?"')
 
     def work(self):
         self.zmqquery_handle()
 
 
 if __name__ == '__main__':
-    dev = PressureHandler()
+    stopevent = Event()
+    dev = TestHandler(event=stopevent, interval=0.1)
+    dev.start()
+    try:
+        time.sleep(200)
+    finally:
+        stopevent.set()
+
