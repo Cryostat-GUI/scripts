@@ -40,12 +40,12 @@ class LS350(LakeShore350):
         return self.KelvinReadingQuery('B')[0]
 
 
-class ZMQdevice(object):
+class zmqDevice(object):
     """docstring for ZMQdevice"""
 
     def __init__(self, zmqcontext=None, port_rep=5556, port_req=5557, *args, **kwargs):
         """reverse portnumbers for server devices!"""
-        super(ZMQdevice, self).__init__(*args, **kwargs)
+        super(zmqDevice, self).__init__(*args, **kwargs)
         try:
 
             self.tcp_rep = self.zmq_context.socket(zmq.REP)
@@ -58,7 +58,7 @@ class ZMQdevice(object):
         self.tcp_rep.bind(f"tcp://*:{port_rep}")
         self.tcp_req.bind(f"tcp://*:{port_req}")
 
-    def zmqquery_handle(self, handlefun):
+    def zmqquery_handle(self):
         # signal.signal(signal.SIGINT, signal.SIG_DFL)
         # context = zmq.Context()
         # self.self.socket = context.self.socket(zmq.REP)
@@ -71,7 +71,7 @@ class ZMQdevice(object):
                 logger.debug(f'received message: {message}')
                 # print(f'received message: {message}')
                 try:
-                    self.handlefun(message=message, socket=self.tcp_rep)
+                    self.handlefun(message=message)
                 except genericAnswer as gen:
                     self.tcp_rep.send_string("{}".format(gen))
         except zmq.Again:
@@ -118,9 +118,31 @@ class ZMQdevice(object):
         except customEx:
             return message
 
-    def handlefun(self):
+    def handlefun(self, message):
         """to be implemented by specific device"""
         raise NotImplementedError
+
+
+class zmqServer(zmqDevice):
+    """docstring for zmqDealer"""
+
+    def __init__(self, *args, **kwargs):
+        super(zmqServer, self).__init__(
+            port_rep=5557, port_req=5556, *args, **kwargs)
+
+
+class PressureHandler(zmqServer):
+    """docstring for PressureHandler"""
+
+    def __init__(self, *args, **kwargs):
+        super(PressureHandler, self).__init__(*args, **kwargs)
+        self._pressure = 5
+
+    def handlefun(self, message):
+        if message == 'p?':
+            self.tcp_rep.send_string(f'{self._pressure}')
+        else:
+            self.tcp_rep.send_string(f'received: {message}')
 
 
 def geomfactor(cs1, cs2, length, **kwargs):
@@ -239,3 +261,7 @@ def measure_pressure_multimeter(KTmult, SAMPLE_DIMENSIONS=None) -> dict:
     read_voltage = KTmult.voltage
     read_pressure = (read_voltage - 1.008) / 0.3924
     return dict(read_pressure=read_pressure, read_pvoltage=read_voltage, pressure_sample=pressure(**SAMPLE_DIMENSIONS, gas_pressure=read_pressure).nominal_value)
+
+
+if __name__ == '__main__':
+    dev = PressureHandler()
