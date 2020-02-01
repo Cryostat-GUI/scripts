@@ -121,12 +121,12 @@ class Timerthread(Thread):
 
     def run(self):
         while not self.stopped.wait(self.interval):
-            print(f"my thread is working hard! {self.counter}")
+            # print(f"my thread is working hard! {self.counter}")
             self.work()
             self.counter += 1
 
     def work(self):
-        """to be implemented by child class!""" 
+        """to be implemented by child class!"""
         raise NotImplementedError
 
 
@@ -155,4 +155,3 @@ if __name__ == '__main__':
         time.sleep(200)
     finally:
         stopevent.set()
-
