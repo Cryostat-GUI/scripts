@@ -2,14 +2,23 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import time
 import pandas as pd
-import numpy as np
+# import numpy as np
+import argparse
 
 window_length = 50
 
 fig = plt.figure()
 ax1 = fig.add_subplot(2, 1, 1)
 ax2 = fig.add_subplot(2, 1, 2)
-file = "data/test2.csv"
+file = "data/EUG27A_p_caxis2.csv"
+
+
+# parser = argparse.ArgumentParser()
+# parser.add_argument('-f', "--file", type=str,
+#                     help="filename for data storage", required=True)
+
+# args = parser.parse_args()
+# file = str(args.file, "utf-8")
 
 
 def animate(i):
@@ -17,10 +26,9 @@ def animate(i):
     #     pullData = f.read()
 
     df = pd.read_csv(file, parse_dates=['time'])
-    print(df)
     # dataArray = pullData.split('\n')
     # df = pd.DataFrame(dataArray)
-    roll = df.rolling(window_length).mean()
+    roll = df.loc[:, df.columns != 'time'].rolling(window_length).mean()
 
     # a0ar = []
     # a1ar = []
@@ -48,8 +56,8 @@ def animate(i):
     #         a9ar.append(float(a9))
     ax1.clear()
     # ax1.plot(a0ar,a4ar, 'o')
-    ax1.plot(df['read_pressure'], df['resistivity'], 'o', color='b')
-    ax1.plot(roll['read_pressure'], roll['resistivity'], '-', color='r')
+    ax1.plot(df['set_pressure'], df['resistivity'], 'o', color='b')
+    ax1.plot(roll['set_pressure'], roll['resistivity'], '-', color='r')
     # overwrite the x-label added by `psd`
     ax1.set_ylabel('Sample voltage (V)')
     ax1.set_xlabel('Pressure (bar)')  # overwrite the x-label added by `psd`
@@ -58,6 +66,7 @@ def animate(i):
     ax2.plot(roll['resistivity'], '-', color='r')
     ax2.set_xlabel('Measurement no.')  # overwrite the x-label added by `psd`
     ax2.set_ylabel('Sample voltage (V)')  # overwrite the x-label added by `p
+
 
 animate(50)
 ani = animation.FuncAnimation(fig, animate, interval=1000)

@@ -3,7 +3,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 
 
-
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import QThread
 from PyQt5.QtCore import QTimer
@@ -30,7 +29,6 @@ class dummy:
 
     def __exit__(self, *args, **kwargs):
         pass
-
 
 
 # class Window_ui(QtWidgets.QWidget):
@@ -143,20 +141,19 @@ class dummy:
 #         super().closeEvent(event)
 #     #     del self
 
-		
 
 if __name__ == '__main__':
-	lockin1 = SR830('GPIB::9')
+    lockin1 = SR830('GPIB::9')
 
-	data = [lockin1.x, lockin1.y]
+    data = [lockin1.x, lockin1.y]
 
     app = QtWidgets.QApplication(sys.argv)
     form = Window_plotting(data, 'X', 'Y', 'something', 1)
     form.show()
     sys.exit(app.exec_())
 
-	while True:
-		data[0] = lockin1.x
-		data[1] = lockin1.y
+    while True:
+        data[0] = lockin1.x
+        data[1] = lockin1.y
 
 

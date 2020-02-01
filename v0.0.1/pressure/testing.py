@@ -1,6 +1,4 @@
 import logging
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
 
 import random
 from time import sleep
@@ -8,6 +6,10 @@ from pymeasure.log import console_log
 from pymeasure.display import Plotter
 from pymeasure.experiment import Procedure, Results, Worker
 from pymeasure.experiment import IntegerParameter, FloatParameter, Parameter
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
 
 class RandomProcedure(Procedure):
 
@@ -58,5 +60,5 @@ if __name__ == "__main__":
     log.info("Started the Worker")
 
     log.info("Joining with the worker in at most 1 hr")
-    worker.join(timeout=3600) # wait at most 1 hr (3600 sec)
+    worker.join(timeout=3600)  # wait at most 1 hr (3600 sec)
     log.info("Finished the measurement")
