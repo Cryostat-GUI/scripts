@@ -4,6 +4,7 @@ from threading import Thread, Event
 
 import zmq
 import logging
+import json
 # from threading import Thread
 
 logger = logging.getLogger('zmqConn')
@@ -20,7 +21,7 @@ class customEx(Exception):
 class zmqDevice(object):
     """docstring for ZMQdevice"""
 
-    def __init__(self, zmqcontext=None, port_rep=5556, port_req=5557, *args, **kwargs):
+    def __init__(self, zmqcontext=None, port_rep=5556, port_req=5557, ip_req='192.168.1.103', *args, **kwargs):
         """reverse portnumbers for server devices!"""
         super(zmqDevice, self).__init__(*args, **kwargs)
         try:
@@ -33,15 +34,10 @@ class zmqDevice(object):
             self.tcp_req = self.zmq_context.socket(zmq.REQ)
 
         self.tcp_rep.bind(f"tcp://*:{port_rep}")
-        self.tcp_req.bind(f"tcp://*:{port_req}")
+        self.tcp_req.connect(f"tcp://{ip_req}:{port_req}")
 
     def zmqquery_handle(self):
-        # signal.signal(signal.SIGINT, signal.SIG_DFL)
-        # context = zmq.Context()
-        # self.self.socket = context.self.socket(zmq.REP)
-        # self.socket.bind("tcp://*:{}".format(5556))
-
-        # handles all currently available messages
+        """handle all currently available messages"""
         try:
             while True:
                 message = self.tcp_rep.recv(flags=zmq.NOBLOCK)
@@ -56,10 +52,7 @@ class zmqDevice(object):
             # print('nothing to work')
 
     def zmqquery(self, query):
-        # signal.signal(signal.SIGINT, signal.SIG_DFL);
-        # context = zmq.Context()
-        # self.socket = context.self.socket(zmq.REQ)
-        # self.socket.connect("tcp://localhost:5556")
+        """perform one query via zmq"""
         try:
             self.tcp_req.send_string(f'{query}')
             while True:
@@ -68,7 +61,7 @@ class zmqDevice(object):
                     raise customEx
                 except zmq.Again:
                     time.sleep(0.2)
-                    print('no answer')
+                    logger.debug('no answer')
         except zmq.ZMQError as e:
             logger.exception('There was an error in the zmq communication!', e)
             return -1
@@ -76,10 +69,7 @@ class zmqDevice(object):
             return message
 
     def zmqquery_dict(self, query):
-        # signal.signal(signal.SIGINT, signal.SIG_DFL);
-        # context = zmq.Context()
-        # self.socket = context.self.socket(zmq.REQ)
-        # self.socket.connect("tcp://localhost:5556")
+        """perform one query via zmq, expecting json-like response"""
         try:
             self.tcp_req.send_string(f'{query}')
             while True:
@@ -88,7 +78,9 @@ class zmqDevice(object):
                     raise customEx
                 except zmq.Again:
                     time.sleep(0.2)
-                    print('no answer')
+                    logger.debug('no answer')
+                except json.decoder.JSONDecodeError:
+                    logger.exception('json dictquery failed -- non-json returned!')
         except zmq.ZMQError as e:
             logger.exception('There was an error in the zmq communication!', e)
             return -1
@@ -96,12 +88,12 @@ class zmqDevice(object):
             return message
 
     def handlefun(self, message):
-        """to be implemented by specific device"""
+        """to be implemented by specific device, handling messages"""
         raise NotImplementedError
 
 
 class zmqServer(zmqDevice):
-    """docstring for zmqDealer"""
+    """zmqServer with exchanged ports, for other side of communication"""
 
     def __init__(self, *args, **kwargs):
         super(zmqServer, self).__init__(
