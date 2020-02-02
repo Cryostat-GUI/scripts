@@ -48,7 +48,7 @@ class zmqDevice(object):
                 logger.debug(f'received message: {message}')
                 # print(f'received message: {message}')
                 try:
-                    self.handlefun(message=message)
+                    self.handlefun(message_bytes=message)
                 except genericAnswer as gen:
                     self.tcp_rep.send_string("{}".format(gen))
         except zmq.Again:
@@ -123,7 +123,7 @@ class Timerthread(Thread):
         while not self.stopped.wait(self.interval):
             # print(f"my thread is working hard! {self.counter}")
             self.work()
-            self.counter += 1
+            # self.counter += 1
 
     def work(self):
         """to be implemented by child class!"""
