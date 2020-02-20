@@ -127,6 +127,7 @@ class ADC5V(I2CAdapter):
 
 class PressureHandler(zmqServer, Timerthread):
     """docstring for PressureHandler"""
+    # pressure controller takes 0.4s to set the pressure - this is in case of no load
 
     def __init__(self, *args, **kwargs):
         super(PressureHandler, self).__init__(*args, **kwargs)
